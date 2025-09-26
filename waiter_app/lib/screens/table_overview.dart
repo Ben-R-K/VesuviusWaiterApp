@@ -46,6 +46,29 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
     super.dispose();
   }
 
+  void _openSettings() {
+    final baseController = TextEditingController(text: widget.sessionManager.baseUrl);
+    final tokenController = TextEditingController(text: widget.sessionManager.token ?? '');
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('Dev settings'),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: baseController, decoration: const InputDecoration(labelText: 'Base URL')),
+        TextField(controller: tokenController, decoration: const InputDecoration(labelText: 'Auth token (dev)'), obscureText: false),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () {
+          final newBase = baseController.text.trim();
+          final newToken = tokenController.text.trim();
+          if (newBase.isNotEmpty) widget.sessionManager.setBaseUrl(newBase);
+          widget.sessionManager.setToken(newToken.isEmpty ? null : newToken);
+          Navigator.of(ctx).pop();
+          _loadTables();
+        }, child: const Text('Apply'))
+      ],
+    ));
+  }
+
   void _openTable(TableDto t) {
     // For now show a simple dialog; real implementation would open order screen.
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => OrderScreen(sessionManager: widget.sessionManager, table: t)));
@@ -57,9 +80,12 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
       appBar: AppBar(
         title: const Text('Bordoversigt'),
         actions: [
+          IconButton(icon: const Icon(Icons.settings), onPressed: () => _openSettings()),
           IconButton(icon: const Icon(Icons.logout), onPressed: () {
             widget.sessionManager.logout();
-            Navigator.of(context).pushReplacementNamed('/');
+            // Since login screen removed, just clear token and reload tables
+            widget.sessionManager.setToken(null);
+            _loadTables();
           })
         ],
       ),

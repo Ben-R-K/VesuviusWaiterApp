@@ -4,8 +4,8 @@ import 'api_client.dart';
 import 'backend_service.dart';
 
 class SessionManager {
-  final ApiClient apiClient;
-  final String baseUrl;
+  ApiClient apiClient;
+  String baseUrl;
   String? _token;
   Timer? _inactivityTimer;
 
@@ -14,6 +14,18 @@ class SessionManager {
     if (autoLoginToken != null && autoLoginToken.isNotEmpty) {
       _token = autoLoginToken;
     }
+  }
+
+  /// Replace the API client's base URL at runtime.
+  void setBaseUrl(String newBaseUrl) {
+    baseUrl = newBaseUrl;
+    apiClient = ApiClient(baseUrl: newBaseUrl, timeout: apiClient.timeout);
+  }
+
+  /// Set the session token at runtime.
+  void setToken(String? token) {
+    _token = token;
+    if (token != null) _resetTimer();
   }
 
   /// How often to poll backend resources when realtime push is not available.
