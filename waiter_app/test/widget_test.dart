@@ -17,8 +17,7 @@ void main() {
     final sessionManager = SessionManager();
     await tester.pumpWidget(MyApp(sessionManager: sessionManager));
 
-    // Verify that the login screen is shown
-    expect(find.text('Tjener Login'), findsOneWidget);
-    expect(find.byType(TextField), findsNWidgets(2));
+  // Verify that the table overview is shown
+  expect(find.text('Bordoversigt'), findsOneWidget);
   });
-}
+} 

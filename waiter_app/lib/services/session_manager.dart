@@ -9,7 +9,16 @@ class SessionManager {
   String? _token;
   Timer? _inactivityTimer;
 
-  SessionManager({ApiClient? apiClient, this.baseUrl = 'https://localhost:3000'}) : apiClient = apiClient ?? ApiClient(baseUrl: baseUrl);
+  /// If [autoLoginToken] is provided the session will be pre-authenticated using that token.
+  SessionManager({ApiClient? apiClient, this.baseUrl = 'https://localhost:3000', String? autoLoginToken}) : apiClient = apiClient ?? ApiClient(baseUrl: baseUrl) {
+    if (autoLoginToken != null && autoLoginToken.isNotEmpty) {
+      _token = autoLoginToken;
+    }
+  }
+
+  /// How often to poll backend resources when realtime push is not available.
+  /// Default is 5 seconds.
+  Duration backendPollInterval = const Duration(seconds: 5);
 
   Duration get inactivityTimeout => const Duration(minutes: 30);
 

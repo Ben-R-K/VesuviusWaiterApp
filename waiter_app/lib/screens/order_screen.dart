@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:waiter_app/services/session_manager.dart';
 import 'package:waiter_app/models/dto.dart';
+import 'dart:async';
 
 class OrderScreen extends StatefulWidget {
   final SessionManager sessionManager;
@@ -16,11 +17,13 @@ class _OrderScreenState extends State<OrderScreen> {
   final Set<int> _selected = {};
   bool _loading = true;
   String? _error;
+  Timer? _menuPollTimer;
 
   @override
   void initState() {
     super.initState();
     _loadMenu();
+    _menuPollTimer = Timer.periodic(widget.sessionManager.backendPollInterval, (_) => _loadMenu());
   }
 
   Future<void> _loadMenu() async {
@@ -55,6 +58,12 @@ class _OrderScreenState extends State<OrderScreen> {
     } finally {
       setState(() => _loading = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _menuPollTimer?.cancel();
+    super.dispose();
   }
 
   @override
