@@ -101,42 +101,57 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
                   itemCount: tables.length,
                   itemBuilder: (ctx, i) {
                     final t = tables[i];
+                    final hasCustomer = t.customerName != null && t.customerName!.isNotEmpty;
                     return InkWell(
                       borderRadius: BorderRadius.circular(24),
-                      onTap: () => _showAssignDialog(t),
-                      child: Card(
-                        elevation: 10,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                        color: Colors.white,
-                        shadowColor: Colors.green[200],
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(24),
-                            gradient: LinearGradient(
-                              colors: [Colors.green[100]!, Colors.green[300]!],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                      onTap: hasCustomer
+                          ? () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (_) => MenuScreen(
+                                  sessionManager: widget.sessionManager,
+                                  table: t,
+                                ),
+                              ));
+                            }
+                          : () {
+                              _showAssignDialog(t);
+                            },
+                      child: Opacity(
+                        opacity: hasCustomer ? 0.6 : 1.0,
+                        child: Card(
+                          elevation: 10,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                          color: Colors.white,
+                          shadowColor: Colors.green[200],
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+                              gradient: LinearGradient(
+                                colors: [Colors.green[100]!, Colors.green[300]!],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
                             ),
-                          ),
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.event_seat, size: 40, color: Colors.green[800]),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Bord',
-                                  style: TextStyle(fontSize: 18, color: Colors.green[900], fontWeight: FontWeight.w500, letterSpacing: 1.2),
-                                ),
-                                Text(
-                                  t.name,
-                                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black87, letterSpacing: 2),
-                                ),
-                                if (t.customerName != null && t.customerName!.isNotEmpty) ...[
-                                  const SizedBox(height: 10),
-                                  Text('Kunde: ${t.customerName}', style: const TextStyle(fontSize: 16, color: Colors.black54)),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.event_seat, size: 40, color: Colors.green[800]),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Bord',
+                                    style: TextStyle(fontSize: 18, color: Colors.green[900], fontWeight: FontWeight.w500, letterSpacing: 1.2),
+                                  ),
+                                  Text(
+                                    t.name,
+                                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black87, letterSpacing: 2),
+                                  ),
+                                  if (t.customerName != null && t.customerName!.isNotEmpty) ...[
+                                    const SizedBox(height: 10),
+                                    Text('Kunde: ${t.customerName}', style: const TextStyle(fontSize: 16, color: Colors.black54)),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
                           ),
                         ),
