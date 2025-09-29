@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:waiter_app/services/session_manager.dart';
-
-
 import 'package:waiter_app/models/dto.dart';
+import 'package:waiter_app/models/cart.dart';
 import 'order_screen.dart';
 
 class MenuScreen extends StatefulWidget {
@@ -11,19 +10,22 @@ class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key, required this.sessionManager, this.table});
 
   @override
-  _MenuScreenState createState() => _MenuScreenState();
+  State<MenuScreen> createState() => _MenuScreenState();
 }
 
 class _MenuScreenState extends State<MenuScreen> {
   List<MenuItemDto> menu = [];
   bool _loading = true;
   String? _error;
-
+  TableOrderCart? cart;
 
   @override
   void initState() {
     super.initState();
     _loadMenu();
+    if (widget.table != null) {
+      cart = TableOrderCart(widget.table!);
+    }
   }
 
   Future<void> _loadMenu() async {
@@ -47,14 +49,28 @@ class _MenuScreenState extends State<MenuScreen> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.table != null ? 'Menu for Bord ${widget.table!.name}' : 'Menu'),
-        actions: [],
+        actions: widget.table != null && cart != null
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.shopping_cart),
+                  tooltip: 'Se bestilling',
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => OrderScreen(
+                        sessionManager: widget.sessionManager,
+                        table: widget.table!,
+                        cart: cart,
+                      ),
+                    ));
+                  },
+                )
+              ]
+            : [],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -97,35 +113,125 @@ class _MenuScreenState extends State<MenuScreen> {
                                 ),
                               )
                             : null,
-                        trailing: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.green[100],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${m.price.toStringAsFixed(0)} kr',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.green),
-                          ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
+                              decoration: BoxDecoration(
+                                color: Colors.green[100],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '${m.price.toStringAsFixed(0)} kr',
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.green),
+                              ),
+                            ),
+                            if (widget.table != null && cart != null)
+                              IconButton(
+                                icon: const Icon(Icons.add),
+                                tooltip: 'Tilføj til bestilling',
+                                onPressed: () async {
+                                  final result = await showDialog<_CartAddResult>(
+                                    context: context,
+                                    builder: (context) => _AddToCartDialog(menuItem: m),
+                                  );
+                                  if (result != null && result.quantity > 0) {
+                                    setState(() {
+                                      cart!.addItem(m, quantity: result.quantity, notes: result.notes);
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Tilføjet til bestilling: ${m.name} x${result.quantity}')),
+                                    );
+                                  }
+                                },
+                              ),
+                          ],
                         ),
-                        onTap: widget.table != null
-                            ? () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (_) => OrderScreen(
-                                    sessionManager: widget.sessionManager,
-                                    table: widget.table!,
-                                    menuItem: m,
-                                  ),
-                                ));
-                              }
-                            : null,
+                        onTap: null,
                       ),
                     );
                   },
                 ),
     );
   }
+}
+
+class _CartAddResult {
+  final int quantity;
+  final String? notes;
+  _CartAddResult(this.quantity, this.notes);
+}
+
+class _AddToCartDialog extends StatefulWidget {
+  final MenuItemDto menuItem;
+  const _AddToCartDialog({required this.menuItem});
+
+  @override
+  State<_AddToCartDialog> createState() => _AddToCartDialogState();
+}
+
+class _AddToCartDialogState extends State<_AddToCartDialog> {
+  int _quantity = 1;
+  final TextEditingController _notesController = TextEditingController();
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Tilføj til bestilling'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(widget.menuItem.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.remove_circle),
+                onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+              ),
+              Text('$_quantity', style: const TextStyle(fontSize: 18)),
+              IconButton(
+                icon: const Icon(Icons.add_circle),
+                onPressed: () => setState(() => _quantity++),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _notesController,
+            decoration: const InputDecoration(
+              labelText: 'Kommentar (f.eks. ingen løg)',
+              border: OutlineInputBorder(),
+            ),
+            minLines: 1,
+            maxLines: 2,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Annuller'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop(_CartAddResult(_quantity, _notesController.text.trim()));
+          },
+          child: const Text('Tilføj'),
+        ),
+      ],
+    );
+  }
+}
+
 
 
 
