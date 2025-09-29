@@ -17,7 +17,7 @@ void main() {
     final sessionManager = SessionManager();
     await tester.pumpWidget(MyApp(sessionManager: sessionManager));
 
-  // Verify that the table overview is shown
-  expect(find.text('Bordoversigt'), findsOneWidget);
+  // Verify that the menu screen is shown
+  expect(find.text('Menu'), findsOneWidget);
   });
 } 

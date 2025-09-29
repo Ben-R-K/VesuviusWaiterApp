@@ -1,50 +1,60 @@
 // DTO models for waiter app
 class TableDto {
-  final int id;
+  // IDs in the backend may be strings (UUID-like) or integers. Use String
+  // internally for robustness.
+  final String id;
   final String name;
   final bool occupied;
 
   TableDto({required this.id, required this.name, required this.occupied});
 
-  factory TableDto.fromJson(Map<String, dynamic> j) => TableDto(
-        id: j['id'] as int,
-        name: j['name'] as String,
-        occupied: j['occupied'] as bool? ?? false,
-      );
+  factory TableDto.fromJson(Map<String, dynamic> j) {
+    final rawId = j['id'];
+    return TableDto(
+      id: rawId != null ? rawId.toString() : '',
+      name: (j['name'] ?? j['label'] ?? j['title'] ?? '').toString(),
+      occupied: j['occupied'] as bool? ?? false,
+    );
+  }
 
   Map<String, dynamic> toJson() => {'id': id, 'name': name, 'occupied': occupied};
 }
 
 class MenuItemDto {
-  final int id;
+  // Backend uses string IDs; price may be integer or double.
+  final String id;
   final String name;
+  final String? description;
   final String category;
   final double price;
+  final String? image;
 
-  MenuItemDto({required this.id, required this.name, required this.category, required this.price});
+  MenuItemDto({required this.id, required this.name, this.description, required this.category, required this.price, this.image});
 
-  factory MenuItemDto.fromJson(Map<String, dynamic> j) => MenuItemDto(
-        id: j['id'] as int,
-        name: j['name'] as String,
-        category: j['category'] as String? ?? '',
-        price: (j['price'] as num).toDouble(),
+  factory MenuItemDto.fromJson(Map<String, dynamic> j, {String? category}) => MenuItemDto(
+        id: (j['id'] ?? j['uuid'] ?? j['uid']).toString(),
+        name: (j['name'] ?? '').toString(),
+        description: j['description'] as String?,
+        category: category ?? (j['category'] as String? ?? ''),
+        price: j['price'] != null ? (j['price'] as num).toDouble() : 0.0,
+        image: j['image'] as String?,
       );
 
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'category': category, 'price': price};
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'description': description, 'category': category, 'price': price, 'image': image};
 }
 
 class OrderDto {
-  final int id;
-  final int tableId;
-  final List<int> menuItemIds;
+  final String id;
+  final String tableId;
+  final List<String> menuItemIds;
   final String status; // queued, in_progress, ready, problem
 
   OrderDto({required this.id, required this.tableId, required this.menuItemIds, required this.status});
 
   factory OrderDto.fromJson(Map<String, dynamic> j) => OrderDto(
-        id: j['id'] as int,
-        tableId: j['tableId'] as int,
-        menuItemIds: (j['menuItemIds'] as List).map((e) => e as int).toList(),
+        id: (j['id'] ?? j['uuid']).toString(),
+        tableId: (j['tableId'] ?? j['table'] ?? j['tableId']).toString(),
+        menuItemIds: (j['menuItemIds'] as List? ?? j['items'] as List? ?? []).map((e) => e.toString()).toList(),
         status: j['status'] as String? ?? 'queued',
       );
 
@@ -52,8 +62,8 @@ class OrderDto {
 }
 
 class ReservationDto {
-  final int id;
-  final int tableId;
+  final String id;
+  final String tableId;
   final String customerName;
   final DateTime from;
   final DateTime to;
@@ -61,9 +71,9 @@ class ReservationDto {
   ReservationDto({required this.id, required this.tableId, required this.customerName, required this.from, required this.to});
 
   factory ReservationDto.fromJson(Map<String, dynamic> j) => ReservationDto(
-        id: j['id'] as int,
-        tableId: j['tableId'] as int,
-        customerName: j['customerName'] as String? ?? '',
+        id: (j['id'] ?? j['uuid']).toString(),
+        tableId: (j['tableId'] ?? j['table']).toString(),
+        customerName: (j['customerName'] ?? j['name'] ?? '').toString(),
         from: DateTime.parse(j['from'] as String),
         to: DateTime.parse(j['to'] as String),
       );

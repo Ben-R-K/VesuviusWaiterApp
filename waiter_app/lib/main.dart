@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:waiter_app/screens/table_overview.dart';
+import 'package:waiter_app/screens/menu_screen.dart';
 import 'package:waiter_app/services/session_manager.dart';
 import 'package:waiter_app/theme/app_theme.dart';
 
@@ -7,6 +7,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Replace 'DEV_TOKEN' with a real token for connecting to your authenticated backend.
   final sessionManager = SessionManager(autoLoginToken: 'DEV_TOKEN');
+  await sessionManager.detectAndSetWorkingBaseUrl();
   runApp(MyApp(sessionManager: sessionManager));
 }
 
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
       title: 'Vesuvius Waiter App',
       theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      home: TableOverviewScreen(sessionManager: sessionManager),
+      home: MenuScreen(sessionManager: sessionManager),
     );
   }
 }
