@@ -5,8 +5,9 @@ class TableDto {
   final String id;
   final String name;
   final bool occupied;
+  final String? customerName; // nullable, empty or null if unassigned
 
-  TableDto({required this.id, required this.name, required this.occupied});
+  TableDto({required this.id, required this.name, required this.occupied, this.customerName});
 
   factory TableDto.fromJson(Map<String, dynamic> j) {
     final rawId = j['id'];
@@ -14,10 +15,16 @@ class TableDto {
       id: rawId != null ? rawId.toString() : '',
       name: (j['name'] ?? j['label'] ?? j['title'] ?? '').toString(),
       occupied: j['occupied'] as bool? ?? false,
+      customerName: (j['customerName'] ?? '').toString().isEmpty ? null : (j['customerName'] ?? '').toString(),
     );
   }
 
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'occupied': occupied};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'occupied': occupied,
+    if (customerName != null && customerName!.isNotEmpty) 'customerName': customerName,
+  };
 }
 
 class MenuItemDto {

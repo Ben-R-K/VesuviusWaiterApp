@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:waiter_app/screens/menu_screen.dart';
+import 'package:waiter_app/screens/table_overview.dart';
 import 'package:waiter_app/services/session_manager.dart';
 import 'package:waiter_app/theme/app_theme.dart';
 
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
       title: 'Vesuvius Waiter App',
       theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      home: MenuScreen(sessionManager: sessionManager),
+  home: TableOverviewScreen(sessionManager: sessionManager),
     );
   }
 }
