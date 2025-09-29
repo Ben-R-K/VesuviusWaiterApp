@@ -2,7 +2,6 @@ import 'package:waiter_app/services/api_client.dart';
 import 'package:waiter_app/models/dto.dart';
 
 
-import '../config.dart';
 
 class BackendService {
   final ApiClient client;
@@ -37,9 +36,17 @@ class BackendService {
     return items;
   }
 
-  Future<OrderDto> createOrder(String tableId, List<String> menuItemIds) async {
-    final res = await client.post('/api/orders', {'tableId': tableId, 'menuItemIds': menuItemIds}, token: token);
-    return OrderDto.fromJson(res);
+  Future<OrderDto> createOrder(String tableId, List<String> menuItemIds, {String? customerId, String? reservationId, String? notes}) async {
+    // The backend expects: { customerId, reservationId, items: [{menuItemId, quantity}], notes }
+    final items = menuItemIds.map((id) => {'menuItemId': id, 'quantity': 1}).toList();
+    final body = {
+      if (customerId != null) 'customerId': customerId,
+      if (reservationId != null) 'reservationId': reservationId,
+      'items': items,
+      if (notes != null) 'notes': notes,
+    };
+    final res = await client.post('/api/orders', body, token: token);
+    return OrderDto.fromJson(res['order'] ?? res);
   }
 
   Future<List<OrderDto>> getOrders({String? status}) async {

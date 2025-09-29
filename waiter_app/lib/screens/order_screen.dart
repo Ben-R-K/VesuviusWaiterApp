@@ -27,6 +27,7 @@ class _OrderScreenState extends State<OrderScreen> {
     });
     try {
       final backend = widget.sessionManager.backend;
+      // Optionally pass customerId/reservationId if available
       await backend.createOrder(widget.table.id, [widget.menuItem.id]);
       setState(() => _success = 'Bestilling sendt!');
     } catch (e) {
