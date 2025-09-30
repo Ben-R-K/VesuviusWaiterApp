@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:waiter_app/screens/table_overview.dart';
 import 'package:waiter_app/services/session_manager.dart';
 import 'package:waiter_app/theme/app_theme.dart';
+import 'package:waiter_app/config.dart';
 import 'dart:io';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Replace 'DEV_TOKEN' with a real token for connecting to your authenticated backend.
   HttpOverrides.global = MyHttpOverrides();
-  final sessionManager = SessionManager(autoLoginToken: 'DEV_TOKEN');
-  await sessionManager.detectAndSetWorkingBaseUrl();
+  final sessionManager = SessionManager(baseUrl: apiBaseUrl, autoLoginToken: 'DEV_TOKEN');
+  // Comment out auto-detection to force use of config
+  // await sessionManager.detectAndSetWorkingBaseUrl();
   runApp(MyApp(sessionManager: sessionManager));
 }
 

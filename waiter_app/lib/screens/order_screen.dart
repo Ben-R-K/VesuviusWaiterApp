@@ -48,6 +48,7 @@ class _OrderScreenState extends State<OrderScreen> {
         await backend.createOrder(
           widget.table.id,
           items,
+          tableName: widget.table.name,
           // Optionally, you could concatenate notes from all items
           notes: widget.cart!.items.map((e) => e.notes).where((n) => n != null && n.isNotEmpty).join('; '),
         );
@@ -59,6 +60,7 @@ class _OrderScreenState extends State<OrderScreen> {
         await backend.createOrder(
           widget.table.id,
           items,
+          tableName: widget.table.name,
           notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
         );
         setState(() => _success = 'Bestilling sendt!');

@@ -7,7 +7,14 @@ import 'order_screen.dart';
 class MenuScreen extends StatefulWidget {
   final SessionManager sessionManager;
   final TableDto? table;
-  const MenuScreen({super.key, required this.sessionManager, this.table});
+  final Map<String, dynamic>? reservationInfo;
+  
+  const MenuScreen({
+    super.key, 
+    required this.sessionManager, 
+    this.table,
+    this.reservationInfo,
+  });
 
   @override
   State<MenuScreen> createState() => _MenuScreenState();
@@ -25,6 +32,19 @@ class _MenuScreenState extends State<MenuScreen> {
     _loadMenu();
     if (widget.table != null) {
       cart = TableOrderCart(widget.table!);
+    } else if (widget.reservationInfo != null) {
+      // Create a temporary table DTO for reservation
+      final tableNumbers = (widget.reservationInfo!['tables'] as List<dynamic>?)
+          ?.map((table) => table['tableNumber'].toString())
+          .join(', ') ?? 'Reservation';
+      
+      final tempTable = TableDto(
+        id: 'reservation_${widget.reservationInfo!['time']}',
+        name: tableNumbers,
+        occupied: true,
+        customerName: widget.reservationInfo!['customerName'],
+      );
+      cart = TableOrderCart(tempTable);
     }
   }
 

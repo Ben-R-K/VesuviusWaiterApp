@@ -151,6 +151,45 @@ class ApiClient {
     }
   }
 
+  Future<Map<String, dynamic>> patch(String path, Map<String, dynamic> body, {String? token}) async {
+    final uri = _uri(path);
+    try {
+      final res = await http
+          .patch(uri, body: jsonEncode(body), headers: _defaultHeaders(token))
+          .timeout(timeout);
+      return _decodeOrThrow(res.statusCode, res.body);
+    } on http.ClientException catch (e) {
+      // Try emulator fallback once when baseUrl uses localhost
+      if (_canUseEmulatorFallback) {
+        final altBase = _emulatorBase();
+        final altUri = _uriForHost(altBase, path);
+        try {
+          final altRes = await http.patch(altUri, body: jsonEncode(body), headers: _defaultHeaders(token)).timeout(timeout);
+          return _decodeOrThrow(altRes.statusCode, altRes.body);
+        } on Exception {
+          throw ApiException('Network error patching to $uri and emulator fallback $altUri failed: ${e.message}.');
+        }
+      }
+      throw ApiException('Network error patching to $uri: ${e.message}.');
+    } on SocketException catch (e) {
+      if (_canUseEmulatorFallback) {
+        final altBase = _emulatorBase();
+        final altUri = _uriForHost(altBase, path);
+        try {
+          final altRes = await http.patch(altUri, body: jsonEncode(body), headers: _defaultHeaders(token)).timeout(timeout);
+          return _decodeOrThrow(altRes.statusCode, altRes.body);
+        } on Exception {
+          throw ApiException('Socket error patching to $uri and emulator fallback $altUri failed: ${e.message}.');
+        }
+      }
+      throw ApiException('Socket error patching to $uri: ${e.message}.');
+    } on TimeoutException {
+      throw ApiException('Request to $uri timed out after ${timeout.inSeconds}s.');
+    } catch (e) {
+      throw ApiException('Unknown error patching to $uri: $e');
+    }
+  }
+
   Map<String, dynamic> _decodeOrThrow(int statusCode, String body) {
     if (statusCode >= 200 && statusCode < 300) {
       if (body.isEmpty) return {};

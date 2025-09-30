@@ -6,8 +6,15 @@ class TableDto {
   final String name;
   final bool occupied;
   final String? customerName; // nullable, empty or null if unassigned
+  final String? reservationTime; // time slot for reservations
 
-  TableDto({required this.id, required this.name, required this.occupied, this.customerName});
+  TableDto({
+    required this.id, 
+    required this.name, 
+    required this.occupied, 
+    this.customerName,
+    this.reservationTime,
+  });
 
   factory TableDto.fromJson(Map<String, dynamic> j) {
     final rawId = j['id'];
@@ -16,6 +23,7 @@ class TableDto {
       name: (j['name'] ?? j['label'] ?? j['title'] ?? '').toString(),
       occupied: j['occupied'] as bool? ?? false,
       customerName: (j['customerName'] ?? '').toString().isEmpty ? null : (j['customerName'] ?? '').toString(),
+      reservationTime: j['reservationTime'] as String?,
     );
   }
 
@@ -24,6 +32,7 @@ class TableDto {
     'name': name,
     'occupied': occupied,
     if (customerName != null && customerName!.isNotEmpty) 'customerName': customerName,
+    if (reservationTime != null) 'reservationTime': reservationTime,
   };
 }
 
@@ -55,17 +64,63 @@ class OrderDto {
   final String tableId;
   final List<String> menuItemIds;
   final String status; // queued, in_progress, ready, problem
+  final int? tableNumber;
+  final String? customer;
+  final double? total;
+  final DateTime? createdAt;
+  final List<OrderItemDto>? items;
 
-  OrderDto({required this.id, required this.tableId, required this.menuItemIds, required this.status});
+  OrderDto({
+    required this.id, 
+    required this.tableId, 
+    required this.menuItemIds, 
+    required this.status,
+    this.tableNumber,
+    this.customer,
+    this.total,
+    this.createdAt,
+    this.items,
+  });
 
   factory OrderDto.fromJson(Map<String, dynamic> j) => OrderDto(
         id: (j['id'] ?? j['uuid']).toString(),
         tableId: (j['tableId'] ?? j['table'] ?? j['tableId']).toString(),
-        menuItemIds: (j['menuItemIds'] as List? ?? j['items'] as List? ?? []).map((e) => e.toString()).toList(),
+        menuItemIds: (j['menuItemIds'] as List? ?? []).map((e) => e.toString()).toList(),
         status: j['status'] as String? ?? 'queued',
+        tableNumber: j['tableNumber'] as int?,
+        customer: j['customer'] as String?,
+        total: j['total'] != null ? (j['total'] as num).toDouble() : null,
+        createdAt: j['createdAt'] != null ? DateTime.tryParse(j['createdAt']) : null,
+        items: j['items'] != null 
+          ? (j['items'] as List).map((e) => OrderItemDto.fromJson(e)).toList()
+          : null,
       );
 
   Map<String, dynamic> toJson() => {'id': id, 'tableId': tableId, 'menuItemIds': menuItemIds, 'status': status};
+}
+
+class OrderItemDto {
+  final String? id;
+  final String? name;
+  final int? quantity;
+  final double? price;
+  final String? notes;
+
+  OrderItemDto({
+    this.id,
+    this.name,
+    this.quantity,
+    this.price,
+    this.notes,
+  });
+
+  factory OrderItemDto.fromJson(Map<String, dynamic> j) => OrderItemDto(
+        id: j['id']?.toString(),
+        name: j['name'] as String?,
+        quantity: j['quantity'] as int?,
+        price: j['price'] != null ? (j['price'] as num).toDouble() : null,
+        notes: j['notes'] as String?,
+      );
 }
 
 class ReservationDto {

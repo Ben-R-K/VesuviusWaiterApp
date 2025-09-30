@@ -3,15 +3,18 @@ import 'dart:io';
 
 import 'api_client.dart';
 import 'backend_service.dart';
+import '../config.dart';
 
 class SessionManager {
   ApiClient apiClient;
-  String baseUrl;
+  late String baseUrl;
   String? _token;
   Timer? _inactivityTimer;
 
   /// If [autoLoginToken] is provided the session will be pre-authenticated using that token.
-  SessionManager({ApiClient? apiClient, this.baseUrl = 'http://localhost:3000', String? autoLoginToken}) : apiClient = apiClient ?? ApiClient(baseUrl: baseUrl) {
+  SessionManager({ApiClient? apiClient, String? baseUrl, String? autoLoginToken}) : 
+    baseUrl = baseUrl ?? apiBaseUrl,
+    apiClient = apiClient ?? ApiClient(baseUrl: baseUrl ?? apiBaseUrl) {
     if (autoLoginToken != null && autoLoginToken.isNotEmpty) {
       _token = autoLoginToken;
     }
@@ -53,7 +56,7 @@ class SessionManager {
   /// { 'base': String, 'ok': bool, 'error': String? }
   Future<List<Map<String, dynamic>>> detectAndSetWorkingBaseUrl({Duration timeout = const Duration(seconds: 2)}) async {
     final tried = <String>{};
-    final candidates = <String>['http://localhost:3000', 'http://127.0.0.1:3000', 'http://10.0.2.2:3000'];
+    final candidates = <String>['http://100.115.199.103:3000', 'http://localhost:3000', 'http://127.0.0.1:3000', 'http://10.0.2.2:3000'];
 
     // Add local LAN addresses if available
     try {
