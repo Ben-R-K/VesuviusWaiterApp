@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:waiter_app/services/session_manager.dart';
 import 'package:waiter_app/services/reservation_manager.dart';
 import 'package:waiter_app/models/dto.dart';
@@ -24,11 +25,24 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
   List<Map<String, dynamic>> reservations = [];
   bool _loading = true;
   String? _error;
+  int _finishedOrdersCount = 0;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _loadTables();
+    _loadFinishedOrdersCount();
+    // Refresh finished orders count every 30 seconds
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      _loadFinishedOrdersCount();
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadTables() async {
@@ -88,6 +102,19 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
       setState(() => _error = e.toString());
     } finally {
       setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loadFinishedOrdersCount() async {
+    try {
+      final allOrders = await widget.sessionManager.backend.getOrders();
+      final finishedOrders = allOrders.where((order) => order.status == 'READY').toList();
+      setState(() {
+        _finishedOrdersCount = finishedOrders.length;
+      });
+    } catch (e) {
+      // If error fetching orders, keep count at 0
+      print('Error fetching finished orders count: $e');
     }
   }
 
@@ -182,17 +209,52 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.assignment_turned_in),
+            icon: Stack(
+              children: [
+                const Icon(Icons.assignment_turned_in),
+                if (_finishedOrdersCount > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white, width: 1),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        '$_finishedOrdersCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             tooltip: 'Færdige ordrer',
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(
+            onPressed: () async {
+              await Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => FinishedOrdersScreen(sessionManager: widget.sessionManager),
               ));
+              // Refresh count when returning from finished orders screen
+              _loadFinishedOrdersCount();
             },
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadTables,
+            onPressed: () {
+              _loadTables();
+              _loadFinishedOrdersCount();
+            },
           ),
         ],
       ),
@@ -327,13 +389,68 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton.extended(
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(
+            onPressed: () async {
+              await Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => FinishedOrdersScreen(sessionManager: widget.sessionManager),
               ));
+              // Refresh count when returning from finished orders screen
+              _loadFinishedOrdersCount();
             },
-            icon: const Icon(Icons.assignment_turned_in),
-            label: const Text('Færdige Ordrer'),
+            icon: Stack(
+              children: [
+                const Icon(Icons.assignment_turned_in),
+                if (_finishedOrdersCount > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white, width: 1),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 14,
+                        minHeight: 14,
+                      ),
+                      child: Text(
+                        '$_finishedOrdersCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            label: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Færdige Ordrer'),
+                if (_finishedOrdersCount > 0) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$_finishedOrdersCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
             heroTag: "finished_orders",
           ),
           const SizedBox(height: 16),
