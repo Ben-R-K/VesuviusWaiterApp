@@ -15,14 +15,11 @@ class BackendService {
       final list = await client.getList('/api/tables', token: token);
       return list.map((e) => TableDto.fromJson(e as Map<String, dynamic>)).toList();
     } catch (e) {
-      // Some backends may not expose /api/tables; return an empty list and
-      // let the UI decide whether to show menu data instead.
       return <TableDto>[];
     }
   }
 
   Future<List<MenuItemDto>> getMenu() async {
-    // The backend returns a list of categories each with a `menuItems` array.
     final list = await client.getList('/api/menu', token: token);
     final items = <MenuItemDto>[];
     for (final cat in list) {
@@ -37,12 +34,11 @@ class BackendService {
   }
 
   Future<OrderDto> createOrder(String tableId, List<String> menuItemIds, {String? customerId, String? reservationId, String? notes, String? tableName}) async {
-    // The backend expects: { customerId OR tableNumber, reservationId, items: [{menuItemId, quantity}], notes }
     final items = menuItemIds.map((id) => {'menuItemId': id, 'quantity': 1}).toList();
     final body = {
       if (customerId != null) 'customerId': customerId,
       if (reservationId != null) 'reservationId': reservationId,
-      if (customerId == null) 'tableNumber': tableName ?? tableId, // Use tableName (actual number) for walk-ins
+      if (customerId == null) 'tableNumber': tableName ?? tableId, 
       'items': items,
       if (notes != null) 'notes': notes,
     };
@@ -69,16 +65,12 @@ class BackendService {
     return ReservationDto.fromJson(res);
   }
 
-  /// Check reservation availability for a specific date, time, and party size
-  /// Uses the same API as the web reservation system
   Future<Map<String, dynamic>> checkReservationAvailability(String date, String time, int partySize) async {
     final url = '/api/reservations?date=$date&time=$time&partySize=$partySize';
     final response = await client.get(url, token: token);
     return response;
   }
 
-  /// Create a walk-in reservation (immediate seating)
-  /// Uses the reservation API but with minimal customer data
   Future<Map<String, dynamic>> createWalkInReservation(String date, String time, int partySize, String customerName) async {
     final body = {
       'date': date,
@@ -87,8 +79,8 @@ class BackendService {
       'customerData': {
         'firstName': customerName.split(' ').first,
         'lastName': customerName.split(' ').length > 1 ? customerName.split(' ').skip(1).join(' ') : '.',
-        'email': 'walkin@vesuvius.dk', // Default email for walk-ins
-        'phone': '', // Optional for walk-ins
+        'email': 'walkin@vesuvius.dk',
+        'phone': '', 
       },
     };
     final response = await client.post('/api/reservations', body, token: token);

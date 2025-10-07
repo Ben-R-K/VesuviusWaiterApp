@@ -11,7 +11,6 @@ class SessionManager {
   String? _token;
   Timer? _inactivityTimer;
 
-  /// If [autoLoginToken] is provided the session will be pre-authenticated using that token.
   SessionManager({ApiClient? apiClient, String? baseUrl, String? autoLoginToken}) : 
     baseUrl = baseUrl ?? apiBaseUrl,
     apiClient = apiClient ?? ApiClient(baseUrl: baseUrl ?? apiBaseUrl) {
@@ -20,15 +19,11 @@ class SessionManager {
     }
   }
 
-  /// Replace the API client's base URL at runtime.
   void setBaseUrl(String newBaseUrl) {
     baseUrl = newBaseUrl;
     apiClient = ApiClient(baseUrl: newBaseUrl, timeout: apiClient.timeout);
   }
 
-  /// Helper to return a host suitable for Android emulator when using a
-  /// development server running on the host machine. Use `10.0.2.2` for the
-  /// default Android emulator when testing instead of `localhost`.
   static String emulatorHostFor(String host) {
     if (host.startsWith('http://localhost') || host.startsWith('https://localhost')) {
       return host.replaceFirst('localhost', '10.0.2.2');
@@ -36,29 +31,20 @@ class SessionManager {
     return host;
   }
 
-  /// Set the session token at runtime.
   void setToken(String? token) {
     _token = token;
     if (token != null) _resetTimer();
   }
-
-  /// How often to poll backend resources when realtime push is not available.
-  /// Default is 5 seconds.
   Duration backendPollInterval = const Duration(seconds: 5);
 
   Duration get inactivityTimeout => const Duration(minutes: 30);
 
   BackendService get backend => BackendService(client: apiClient, token: _token);
 
-  /// Try a list of candidate base URLs and pick the first that responds to
-  /// GET /api/menu. This helps when running the app on emulators/devices.
-  /// Returns a list of probe results. Each result contains:
-  /// { 'base': String, 'ok': bool, 'error': String? }
   Future<List<Map<String, dynamic>>> detectAndSetWorkingBaseUrl({Duration timeout = const Duration(seconds: 2)}) async {
     final tried = <String>{};
     final candidates = <String>['http://100.115.199.103:3000', 'http://localhost:3000', 'http://127.0.0.1:3000', 'http://10.0.2.2:3000'];
 
-    // Add local LAN addresses if available
     try {
       for (final iface in await NetworkInterface.list()) {
         for (final addr in iface.addresses) {
@@ -69,7 +55,6 @@ class SessionManager {
         }
       }
     } catch (_) {
-      // ignore network interface errors
     }
 
     final results = <Map<String, dynamic>>[];
@@ -88,7 +73,6 @@ class SessionManager {
         results.add({'base': c, 'ok': false, 'error': e.toString()});
       }
     }
-    // If none worked, keep existing baseUrl
     return results;
   }
 

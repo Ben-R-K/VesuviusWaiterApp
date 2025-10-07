@@ -27,7 +27,7 @@ class _FinishedOrdersScreenState extends State<FinishedOrdersScreen> {
       _error = null;
     });
     try {
-      // Get all orders and filter for READY status
+
       final allOrders = await widget.sessionManager.backend.getOrders();
       setState(() {
         orders = allOrders.where((order) => order.status == 'READY').toList();
@@ -46,7 +46,7 @@ class _FinishedOrdersScreenState extends State<FinishedOrdersScreen> {
   Future<void> _completeOrder(OrderDto order) async {
     try {
       await widget.sessionManager.backend.updateOrderStatus(order.id, 'COMPLETED');
-      // Remove from local list
+
       setState(() {
         orders.removeWhere((o) => o.id == order.id);
       });

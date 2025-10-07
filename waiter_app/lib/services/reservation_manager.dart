@@ -27,10 +27,8 @@ class ReservationManager {
 
     if (conflictingReservation) {
       print('ReservationManager: Conflict detected for tables $tableNumbers at $time on $date');
-      return false; // Booking failed due to conflict
+      return false; 
     }
-
-    // Add the reservation
     final reservation = {
       'id': DateTime.now().millisecondsSinceEpoch.toString(),
       'date': date,
@@ -44,25 +42,20 @@ class ReservationManager {
 
     _reservations.add(reservation);
     print('ReservationManager: Added reservation for $customerName at $time on $date, tables: $tableNumbers');
-    return true; // Booking successful
+    return true;
   }
 
-  // Get reservations for a specific date
   List<Map<String, dynamic>> getReservationsForDate(String date) {
     return _reservations.where((reservation) => reservation['date'] == date).toList();
   }
 
-  // Get all reservations
   List<Map<String, dynamic>> getAllReservations() {
     return List<Map<String, dynamic>>.from(_reservations);
   }
 
-  // Check if tables are available for a specific date and time
   List<int> getAvailableTablesForTimeSlot(String date, String time, int partySize) {
-    // All available table numbers (assuming 25 tables)
     final allTables = List.generate(25, (index) => index + 1);
     
-    // Find tables that are already booked for this time slot
     final bookedTables = <int>[];
     for (final reservation in _reservations) {
       if (reservation['date'] == date && reservation['time'] == time) {
@@ -70,20 +63,17 @@ class ReservationManager {
       }
     }
 
-    // Remove booked tables from available tables
     final availableTables = allTables.where((table) => !bookedTables.contains(table)).toList();
     
-    // Calculate how many tables are needed for the party size
-    final tablesNeeded = (partySize / 2).ceil(); // 2 people per table
+    final tablesNeeded = (partySize / 2).ceil(); 
     
     if (availableTables.length >= tablesNeeded) {
       return availableTables.take(tablesNeeded).toList();
     } else {
-      return []; // Not enough tables available
+      return [];
     }
   }
 
-  // Remove a reservation (for cancellation)
   bool removeReservation(String reservationId) {
     final index = _reservations.indexWhere((reservation) => reservation['id'] == reservationId);
     if (index != -1) {
@@ -93,20 +83,17 @@ class ReservationManager {
     return false;
   }
 
-  // Clear all reservations (for testing purposes)
   void clearAllReservations() {
     _reservations.clear();
     print('ReservationManager: All reservations cleared');
   }
 
-  // Initialize with some sample data
   void initializeSampleData() {
     clearAllReservations();
     
     final today = DateTime.now();
     final dateStr = "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
     
-    // Add sample reservations
     addReservation(
       date: dateStr,
       time: '18:00',

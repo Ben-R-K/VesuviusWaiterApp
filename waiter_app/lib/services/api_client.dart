@@ -43,7 +43,6 @@ class ApiClient {
           .timeout(timeout);
       return _decodeOrThrow(res.statusCode, res.body);
     } on http.ClientException catch (e) {
-      // Try emulator fallback once when baseUrl uses localhost
       if (_canUseEmulatorFallback) {
         final altBase = _emulatorBase();
         final altUri = _uriForHost(altBase, path);
@@ -159,7 +158,6 @@ class ApiClient {
           .timeout(timeout);
       return _decodeOrThrow(res.statusCode, res.body);
     } on http.ClientException catch (e) {
-      // Try emulator fallback once when baseUrl uses localhost
       if (_canUseEmulatorFallback) {
         final altBase = _emulatorBase();
         final altUri = _uriForHost(altBase, path);

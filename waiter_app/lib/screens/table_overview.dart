@@ -33,7 +33,6 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
     super.initState();
     _loadTables();
     _loadFinishedOrdersCount();
-    // Refresh finished orders count every 30 seconds
     _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       _loadFinishedOrdersCount();
     });
@@ -51,16 +50,13 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
       _error = null;
     });
     try {
-      // Load tables
       final list = await widget.sessionManager.backend.getTables();
       
-      // Get current reservations from the reservation manager
       final reservationManager = ReservationManager();
       final currentReservations = reservationManager.getAllReservations();
       
       setState(() {
         tables = list.map((t) {
-          // Check if this table has a current reservation
           Map<String, dynamic>? reservation;
           try {
             reservation = currentReservations.firstWhere(
@@ -70,7 +66,7 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
               },
             );
           } catch (e) {
-            reservation = null; // No reservation found
+            reservation = null; 
           }
           
           if (reservation != null) {
@@ -113,7 +109,6 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
         _finishedOrdersCount = finishedOrders.length;
       });
     } catch (e) {
-      // If error fetching orders, keep count at 0
       print('Error fetching finished orders count: $e');
     }
   }
@@ -144,7 +139,6 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                // Go to menu for taking order
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => MenuScreen(
                     sessionManager: widget.sessionManager,
@@ -157,7 +151,6 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
             ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop();
-                // Go to table assignment to modify reservation
                 await Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => TableAssignmentScreen(sessionManager: widget.sessionManager),
                 ));
@@ -171,7 +164,6 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
     );
   }
 
-  // (removed duplicate _showAssignDialog)
 
   @override
   Widget build(BuildContext context) {
@@ -192,16 +184,14 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
             icon: const Icon(Icons.add_business),
             tooltip: 'Tildel nyt bord',
             onPressed: () async {
-              print('Table assignment button pressed'); // Debug
+              print('Table assignment button pressed'); 
               try {
                 await Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => TableAssignmentScreen(sessionManager: widget.sessionManager),
                 ));
-                // Refresh the table overview after returning from table assignment
                 _loadTables();
               } catch (e) {
                 print('Error navigating to table assignment: $e');
-                // Fallback to simple test screen
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => SimpleTestScreen(sessionManager: widget.sessionManager),
                 ));
@@ -245,7 +235,6 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
               await Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => FinishedOrdersScreen(sessionManager: widget.sessionManager),
               ));
-              // Refresh count when returning from finished orders screen
               _loadFinishedOrdersCount();
             },
           ),
@@ -265,8 +254,8 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
               : GridView.builder(
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // 2 tables per row
-                    childAspectRatio: 1.0, // Square cards
+                    crossAxisCount: 2, 
+                    childAspectRatio: 1.0,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
@@ -280,11 +269,9 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
                       borderRadius: BorderRadius.circular(16),
                       onTap: () async {
                         if (isReserved) {
-                          // Show reservation options dialog for reserved tables
                           await _showReservationOptionsDialog(context, t);
                         } else if (hasCustomer) {
-                          // Go to menu for occupied tables
-                          print('Navigating to menu for table ${t.name}'); // Debug
+                          print('Navigating to menu for table ${t.name}'); 
                           Navigator.of(context).push(MaterialPageRoute(
                             builder: (_) => MenuScreen(
                               sessionManager: widget.sessionManager,
@@ -292,12 +279,10 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
                             ),
                           ));
                         } else {
-                          // Go to table assignment for empty tables
-                          print('Navigating to table assignment from empty table ${t.name}'); // Debug
+                          print('Navigating to table assignment from empty table ${t.name}'); 
                           await Navigator.of(context).push(MaterialPageRoute(
                             builder: (_) => TableAssignmentScreen(sessionManager: widget.sessionManager),
                           ));
-                          // Refresh after returning from table assignment
                           _loadTables();
                         }
                       },
@@ -312,10 +297,10 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
                               borderRadius: BorderRadius.circular(16),
                               gradient: LinearGradient(
                                 colors: isReserved 
-                                  ? [Colors.purple[100]!, Colors.purple[300]!] // Purple for reservations
+                                  ? [Colors.purple[100]!, Colors.purple[300]!] 
                                   : hasCustomer 
-                                    ? [Colors.orange[100]!, Colors.orange[300]!] // Orange for walk-ins
-                                    : [Colors.green[100]!, Colors.green[300]!], // Green for available
+                                    ? [Colors.orange[100]!, Colors.orange[300]!] 
+                                    : [Colors.green[100]!, Colors.green[300]!],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
@@ -393,7 +378,6 @@ class _TableOverviewScreenState extends State<TableOverviewScreen> {
               await Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => FinishedOrdersScreen(sessionManager: widget.sessionManager),
               ));
-              // Refresh count when returning from finished orders screen
               _loadFinishedOrdersCount();
             },
             icon: Stack(

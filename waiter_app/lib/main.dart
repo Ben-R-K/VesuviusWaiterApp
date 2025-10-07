@@ -7,11 +7,8 @@ import 'dart:io';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Replace 'DEV_TOKEN' with a real token for connecting to your authenticated backend.
   HttpOverrides.global = MyHttpOverrides();
   final sessionManager = SessionManager(baseUrl: apiBaseUrl, autoLoginToken: 'DEV_TOKEN');
-  // Comment out auto-detection to force use of config
-  // await sessionManager.detectAndSetWorkingBaseUrl();
   runApp(MyApp(sessionManager: sessionManager));
 }
 

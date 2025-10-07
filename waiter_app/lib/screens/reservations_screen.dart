@@ -22,7 +22,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   void initState() {
     super.initState();
     _reservationManager = ReservationManager();
-    _reservationManager.initializeSampleData(); // Initialize with sample data
+    _reservationManager.initializeSampleData(); 
     _loadReservations();
   }
 
@@ -33,11 +33,9 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
     });
 
     try {
-      // Get today's date
       final today = DateTime.now();
       final dateStr = "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
       
-      // Get reservations from the reservation manager
       final reservations = _reservationManager.getReservationsForDate(dateStr);
 
       setState(() {
@@ -56,12 +54,10 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   }
 
   void _takeOrder(Map<String, dynamic> reservation) {
-    // Navigate to menu for this reservation
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => MenuScreen(
         sessionManager: widget.sessionManager,
-        // Pass reservation info as a mock table
-        table: null, // We'll handle this in the menu screen
+        table: null, 
         reservationInfo: reservation,
       ),
     ));

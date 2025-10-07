@@ -22,7 +22,6 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
   List<TableDto> _availableTables = [];
   late ReservationManager _reservationManager;
 
-  // Time slots matching reservation system (15-minute intervals)
   final List<String> _allTimeSlots = [
     "11:00", "11:15", "11:30", "11:45",
     "12:00", "12:15", "12:30", "12:45",
@@ -40,7 +39,7 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
   @override
   void initState() {
     super.initState();
-    print('TableAssignmentScreen: initState called'); // Debug
+    print('TableAssignmentScreen: initState called'); 
     _reservationManager = ReservationManager();
     _loadAvailableTimeSlots();
   }
@@ -52,7 +51,7 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
   }
 
   Future<void> _loadAvailableTimeSlots() async {
-    print('TableAssignmentScreen: _loadAvailableTimeSlots called'); // Debug
+    print('TableAssignmentScreen: _loadAvailableTimeSlots called'); 
     setState(() {
       _loading = true;
       _error = null;
@@ -60,23 +59,21 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
 
     try {
       final now = DateTime.now();
-      print('TableAssignmentScreen: Current time is $now'); // Debug
+      print('TableAssignmentScreen: Current time is $now'); 
       
-      // Filter out past time slots if today
       _availableTimeSlots = _allTimeSlots.where((timeSlot) {
         final timeParts = timeSlot.split(':');
         final slotHour = int.parse(timeParts[0]);
         final slotMinute = int.parse(timeParts[1]);
         final slotDateTime = DateTime(now.year, now.month, now.day, slotHour, slotMinute);
         
-        // Only show future time slots
         return slotDateTime.isAfter(now);
       }).toList();
 
-      print('TableAssignmentScreen: Available time slots: $_availableTimeSlots'); // Debug
+      print('TableAssignmentScreen: Available time slots: $_availableTimeSlots');
 
     } catch (e) {
-      print('TableAssignmentScreen: Error loading time slots: $e'); // Debug
+      print('TableAssignmentScreen: Error loading time slots: $e'); 
       setState(() {
         _error = 'Kunne ikke indlæse ledige tider: $e';
       });
@@ -101,7 +98,6 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
       
       print('TableAssignmentScreen: Checking availability for $dateStr $_selectedTimeSlot, party size: $_partySize');
       
-      // Use our reservation manager to check availability
       final availableTableNumbers = _reservationManager.getAvailableTablesForTimeSlot(
         dateStr, 
         _selectedTimeSlot!, 
@@ -163,10 +159,9 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
       final today = DateTime.now();
       final dateStr = "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
       
-      // Get the table numbers to reserve
       final tableNumbers = _availableTables.map((table) => int.parse(table.name)).toList();
       
-      // Use reservation manager to create the reservation
+
       final success = _reservationManager.addReservation(
         date: dateStr,
         time: _selectedTimeSlot!,
@@ -176,11 +171,9 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
       );
 
       if (success) {
-        // Navigate back to main overview
         if (mounted) {
-          Navigator.of(context).pop(); // Go back to table overview
+          Navigator.of(context).pop(); 
           
-          // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Bord ${tableNumbers.join(', ')} tildelt til ${_customerController.text} ($_partySize personer, kl. $_selectedTimeSlot)'),
@@ -251,7 +244,6 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Party size selection
                   const Text(
                     'Antal personer:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -292,7 +284,6 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Time slot selection
                   const Text(
                     'Vælg tidspunkt (2 timer):',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -302,10 +293,10 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
                     flex: 1,
                     child: GridView.builder(
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3, // Fewer columns for larger buttons
-                        mainAxisSpacing: 12, // More spacing
+                        crossAxisCount: 3, 
+                        mainAxisSpacing: 12, 
                         crossAxisSpacing: 12,
-                        childAspectRatio: 1.8, // Wider buttons
+                        childAspectRatio: 1.8, 
                       ),
                       itemCount: _availableTimeSlots.length,
                       itemBuilder: (context, index) {
@@ -324,15 +315,15 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: isSelected ? Theme.of(context).primaryColor : Colors.grey[200],
                             foregroundColor: isSelected ? Colors.white : Colors.black,
-                            padding: const EdgeInsets.symmetric(vertical: 16), // More padding
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12), // Rounded corners
+                              borderRadius: BorderRadius.circular(12), 
                             ),
                           ),
                           child: Text(
                             timeSlot,
                             style: const TextStyle(
-                              fontSize: 16, // Larger text
+                              fontSize: 16, 
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -341,7 +332,6 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
                     ),
                   ),
 
-                  // Available tables info
                   if (_availableTables.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Text(
@@ -352,7 +342,6 @@ class _TableAssignmentScreenState extends State<TableAssignmentScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Assign table button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(

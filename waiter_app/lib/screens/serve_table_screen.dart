@@ -26,8 +26,6 @@ class _ServeTableScreenState extends State<ServeTableScreen> {
   }
 
   Future<void> _loadReservation() async {
-    // TODO: Integrate with reservation system if needed
-    // Example: fetch reservation for this table if exists
   }
 
   void _proceedToOrder() {
@@ -36,7 +34,6 @@ class _ServeTableScreenState extends State<ServeTableScreen> {
       setState(() => _error = 'Indtast kundens navn');
       return;
     }
-    // Optionally: assign customer to table in backend
     Navigator.of(context).pushReplacement(MaterialPageRoute(
       builder: (_) => MenuScreen(sessionManager: widget.sessionManager, table: TableDto(
         id: widget.table.id,
